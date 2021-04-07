@@ -243,12 +243,16 @@ class GrammarCheckerVisitor(ParseTreeVisitor):
                 tyype, const_value = self.visit(ctx.function_call())
 
         elif len(ctx.expression()) == 1:
-
             if ctx.OP != None:  # unary operators
                 text = ctx.OP.text
                 token = ctx.OP
-                tyype, const_value = self.visit(ctx.expression(0))
-                const_value = eval(f"{text} const_value")
+                tyype, unary_expression_const_value = self.visit(ctx.expression(0))
+                const_value = eval(f"{text} unary_expression_const_value")
+
+                print(
+                    f"line {token.line} Expression {text} {unary_expression_const_value} "
+                    f"simplified to: {const_value}")
+
                 if tyype == Type.VOID:
                     print("ERROR: unary operator '" + text + "' used on type void in line " + str(
                         token.line) + " and column " + str(token.column))
@@ -272,16 +276,22 @@ class GrammarCheckerVisitor(ParseTreeVisitor):
                     tyype = Type.INT
             else:
                 tyype = Type.INT
-            # check if both values is not None and check if both is not string
-            if left_const_value and right_const_value and Type.STRING not in [left, right]:
-                const_value = eval(f"left_const_value {text} right_const_value")
-                # if const_value is a boolean just convert it to int
-                if isinstance(const_value, bool):
-                    const_value = int(const_value)
-                print(
-                    f"line {token.line} Expression {left_const_value} {text} {right_const_value} "
-                    f"simplified to: {const_value}")
-
+            # check if both is not string
+            if Type.STRING not in [left, right]:
+                if left_const_value and right_const_value:
+                    const_value = eval(f"left_const_value {text} right_const_value")
+                    # if const_value is a boolean just convert it to int
+                    if isinstance(const_value, bool):
+                        const_value = int(const_value)
+                    print(
+                        f"line {token.line} Expression {left_const_value} {text} {right_const_value} "
+                        f"simplified to: {const_value}")
+                # anything * 0 = 0
+                elif 0 in [left_const_value, right_const_value] and text in ["*"]:
+                    const_value = 0
+                    print(
+                        f"line {token.line} Expression {left_const_value} {text} {right_const_value} "
+                        f"simplified to: {const_value}")
         return tyype, const_value
 
     # Visit a parse tree produced by GrammarParser#array.
