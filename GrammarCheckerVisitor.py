@@ -278,8 +278,9 @@ class GrammarCheckerVisitor(ParseTreeVisitor):
                 # if const_value is a boolean just convert it to int
                 if isinstance(const_value, bool):
                     const_value = int(const_value)
-
-        print(str(tyype) + ": " + str(const_value))
+                print(
+                    f"line {token.line} Expression {left_const_value} {text} {right_const_value} "
+                    f"simplified to: {const_value}")
 
         return tyype, const_value
 
